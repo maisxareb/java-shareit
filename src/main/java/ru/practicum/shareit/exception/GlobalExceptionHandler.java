@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseError handleException (final Exception e) {
+    public ResponseError handleException(final Exception e) {
         log.warn("Error", e);
         return new ResponseError(e.getMessage());
     }
