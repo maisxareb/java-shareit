@@ -5,9 +5,9 @@ import ru.practicum.shareit.user.model.User;
 import java.util.Optional;
 
 public interface UserRepository {
-    User save(User user);
+    void save(User user);
 
-    User update(User user);
+    void update(User user);
 
     Optional<User> findById(Long userId);
 

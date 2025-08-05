@@ -1,9 +1,9 @@
 package ru.practicum.shareit.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.NewUserRequest;
@@ -21,31 +21,31 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@Validated @RequestBody NewUserRequest request) {
-        log.info("Добавление пользователя {}", request);
-        return userService.saveUser(request);
+    public UserDto createUser(@Valid @RequestBody NewUserRequest request) {
+        log.info("Создание пользователя: {}", request);
+        return userService.createUser(request);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto update(@Validated @RequestBody UpdateUserRequest request,
-                          @PathVariable Long id) {
-        log.info("Обновление пользователя с ID - {}", id);
-        return userService.updateUser(request, id);
+    public UserDto updateUser(
+            @Valid @RequestBody UpdateUserRequest request,
+            @PathVariable("userId") Long userId) {
+        log.info("Обновление пользователя с ID: {}", userId);
+        return userService.updateUser(request, userId);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto findById(@PathVariable Long id) {
-        log.info("Получение пользователя с ID - {}", id);
-        return userService.findUserById(id);
+    public UserDto getUserById(@PathVariable("userId") Long userId) {
+        log.info("Получение пользователя с ID: {}", userId);
+        return userService.getUserById(userId);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        log.info("Удаление пользователя с ID - {}", id);
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable("userId") Long userId) {
+        log.info("Удаление пользователя с ID: {}", userId);
+        userService.deleteUser(userId);
     }
 }

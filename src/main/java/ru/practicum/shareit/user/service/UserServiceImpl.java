@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final Set<String> emailsInMemory = new HashSet<>();
 
-    static final String NOT_FOUND_MESSAGE = "Пользователь с ID - %s не найден";
+    private static final String NOT_FOUND_MESSAGE = "Пользователь с ID %d не найден";
 
     public UserServiceImpl(@Qualifier("InMemoryStorage") UserRepository userRepository,
                            UserMapper userMapper) {
@@ -31,45 +31,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto saveUser(NewUserRequest request) {
+    public UserDto createUser(NewUserRequest request) {
         log.info("Создание пользователя: {}", request);
-        User user = userMapper.toUser(request);
-        validateEmail(user.getEmail());
+        validateEmail(request.getEmail());
 
-        User savedUser = userRepository.save(user);
+        User user = userMapper.toUser(request);
+        userRepository.save(user);
         emailsInMemory.add(user.getEmail());
 
-        return userMapper.toUserDto(savedUser);
+        return userMapper.toUserDto(user);
     }
 
     @Override
     public UserDto updateUser(UpdateUserRequest request, Long userId) {
         log.info("Обновление пользователя ID {}: {}", userId, request);
+
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, userId)));
 
         String oldEmail = existingUser.getEmail();
 
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && !request.getEmail().equals(oldEmail)) {
+            validateEmail(request.getEmail());
+            emailsInMemory.remove(oldEmail);
+            existingUser.setEmail(request.getEmail());
+            emailsInMemory.add(request.getEmail());
+        }
+
         if (request.getName() != null && !request.getName().isBlank()) {
             existingUser.setName(request.getName());
         }
 
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            if (!request.getEmail().equals(oldEmail)) {
-                validateEmail(request.getEmail());
-                emailsInMemory.remove(oldEmail);
-                existingUser.setEmail(request.getEmail());
-                emailsInMemory.add(request.getEmail());
-            }
-        }
-
-        User updatedUser = userRepository.update(existingUser);
-        return userMapper.toUserDto(updatedUser);
+        userRepository.update(existingUser);
+        return userMapper.toUserDto(existingUser);
     }
 
     @Override
-    public UserDto findUserById(Long userId) {
-        log.info("Поиск пользователя по ID: {}", userId);
+    public UserDto getUserById(Long userId) {
+        log.info("Получение пользователя с ID: {}", userId);
         return userRepository.findById(userId)
                 .map(userMapper::toUserDto)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, userId)));
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
     private void validateEmail(String email) {
         if (emailsInMemory.contains(email)) {
             log.warn("Попытка использовать занятый email: {}", email);
-            throw new EliminatingConflict(String.format("Email - %s уже занят", email));
+            throw new EliminatingConflict(String.format("Email %s уже занят", email));
         }
     }
 }

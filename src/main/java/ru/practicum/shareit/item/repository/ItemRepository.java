@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository {
-    Item save(Item item);
+    void save(Item item);
 
     Optional<Item> findItemById(Long id);
 
-    Item update(Item item);
+    void update(Item item);
 
     List<Item> findItemsByUserId(Long userId);
 

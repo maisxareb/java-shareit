@@ -4,47 +4,40 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 @Qualifier("InMemoryStorage")
 public class InMemoryUserRepository implements UserRepository {
-    private final List<User> users = new ArrayList<>();
+    private final ConcurrentHashMap<Long, User> users = new ConcurrentHashMap<>();
     private final AtomicLong idCounter = new AtomicLong(1);
 
     @Override
-    public User save(User user) {
+    public void save(User user) {
         if (user.getId() == null) {
             user.setId(idCounter.getAndIncrement());
         }
-        users.add(user);
-        return user;
+        users.put(user.getId(), user);
     }
 
     @Override
-    public User update(User user) {
-        Optional<User> existingUserOpt = findById(user.getId());
-        if (existingUserOpt.isPresent()) {
-            User existingUser = existingUserOpt.get();
+    public void update(User user) {
+        users.computeIfPresent(user.getId(), (key, existingUser) -> {
             existingUser.setName(user.getName());
             existingUser.setEmail(user.getEmail());
             return existingUser;
-        }
-        return null;
+        });
     }
 
     @Override
     public Optional<User> findById(Long userId) {
-        return users.stream()
-                .filter(user -> user.getId().equals(userId))
-                .findFirst();
+        return Optional.ofNullable(users.get(userId));
     }
 
     @Override
     public void remove(Long id) {
-        users.removeIf(user -> user.getId().equals(id));
+        users.remove(id);
     }
 }

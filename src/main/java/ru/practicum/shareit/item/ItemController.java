@@ -28,14 +28,14 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
             @Valid @RequestBody NewItemRequest request) {
         log.info("Создание предмета для пользователя ID {}. Данные: {}", userId, request);
-        return itemService.saveItem(userId, request);
+        return itemService.createItem(userId, request);
     }
 
     @PatchMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
     public ItemDto updateItem(
             @RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
-            @PathVariable Long itemId,
+            @PathVariable("itemId") Long itemId,
             @Valid @RequestBody UpdateItemRequest request) {
         log.info("Обновление предмета ID {} пользователем ID {}", itemId, userId);
         return itemService.updateItem(userId, request, itemId);
@@ -44,26 +44,26 @@ public class ItemController {
     @GetMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
     public ItemDto getItemById(
-            @PathVariable Long itemId,
+            @PathVariable("itemId") Long itemId,
             @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получение предмета ID {} пользователем ID {}", itemId, userId);
-        return itemService.findItemById(userId, itemId);
+        return itemService.getItemById(userId, itemId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getAllUserItems(
+    public List<ItemDto> getUserItems(
             @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получение всех предметов пользователя ID {}", userId);
-        return itemService.findItemsByUserId(userId);
+        return itemService.getUserItems(userId);
     }
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public List<ItemDto> searchItems(
             @RequestHeader("X-Sharer-User-Id") Long userId,
-            @RequestParam String text) {
+            @RequestParam(name = "text", required = false) String text) {
         log.info("Поиск предметов по тексту '{}' для пользователя ID {}", text, userId);
-        return itemService.findItemsByTextAndAvailable(userId, text);
+        return itemService.searchAvailableItems(userId, text);
     }
 }

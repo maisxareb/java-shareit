@@ -26,21 +26,22 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
 
     @Override
-    public ItemDto saveItem(Long userId, NewItemRequest request) {
-        userService.findUserById(userId);
+    public ItemDto createItem(Long userId, NewItemRequest request) {
+        log.info("Создание предмета для пользователя ID {}", userId);
+        userService.getUserById(userId);
 
         Item item = itemMapper.toItem(request);
         item.setOwner(userId);
-
         validateItem(item);
 
-        Item savedItem = itemRepository.save(item);
-        return itemMapper.toItemDto(savedItem);
+        itemRepository.save(item);
+        return itemMapper.toItemDto(item);
     }
 
     @Override
     public ItemDto updateItem(Long userId, UpdateItemRequest request, Long itemId) {
-        userService.findUserById(userId);
+        log.info("Обновление предмета ID {} пользователем ID {}", itemId, userId);
+        userService.getUserById(userId);
 
         Item existingItem = itemRepository.findItemById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
@@ -49,34 +50,40 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Недостаточно прав для обновления");
         }
 
-        Item updatedItem = itemMapper.updateItemFields(existingItem, request);
-        updatedItem = itemRepository.update(updatedItem);
+        itemMapper.updateItemFromRequest(request, existingItem);
+        itemRepository.update(existingItem);
 
-        return itemMapper.toItemDto(updatedItem);
+        return itemMapper.toItemDto(existingItem);
     }
 
     @Override
-    public ItemDto findItemById(Long userId, Long itemId) {
-        userService.findUserById(userId);
+    public ItemDto getItemById(Long userId, Long itemId) {
+        log.info("Получение предмета ID {} пользователем ID {}", itemId, userId);
+        userService.getUserById(userId);
+
         return itemRepository.findItemById(itemId)
                 .map(itemMapper::toItemDto)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
     }
 
     @Override
-    public List<ItemDto> findItemsByUserId(Long userId) {
-        userService.findUserById(userId);
+    public List<ItemDto> getUserItems(Long userId) {
+        log.info("Получение всех предметов пользователя ID {}", userId);
+        userService.getUserById(userId);
+
         return itemRepository.findItemsByUserId(userId).stream()
                 .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ItemDto> findItemsByTextAndAvailable(Long userId, String text) {
+    public List<ItemDto> searchAvailableItems(Long userId, String text) {
+        log.info("Поиск доступных предметов по запросу '{}'", text);
         if (text == null || text.isBlank()) {
             return Collections.emptyList();
         }
-        userService.findUserById(userId);
+        userService.getUserById(userId);
+
         return itemRepository.findItemsByTextAndAvailable(text).stream()
                 .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
