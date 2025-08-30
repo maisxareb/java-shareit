@@ -20,9 +20,13 @@ public interface ItemMapper {
     @Mapping(target = "request", ignore = true)
     Item toItem(NewItemRequest request);
 
+    @Mapping(target = "lastBooking", ignore = true)
+    @Mapping(target = "nextBooking", ignore = true)
+    @Mapping(target = "comments", ignore = true)
     ItemDto toItemDto(Item item);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "request", ignore = true)
     void updateItemFromRequest(UpdateItemRequest request, @MappingTarget Item item);
 }
-// тут все сложнее чем с ConcurrentHashMap я тут реально седым стал пока информацию искал как правильно
-// добавить зависимость в pom.xml и тд. Кстати pom.xml всетаки пришлось переделать чуть чуть.
