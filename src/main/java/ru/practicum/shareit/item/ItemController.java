@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewItemRequest;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
@@ -65,5 +66,15 @@ public class ItemController {
             @RequestParam(name = "text", required = false) String text) {
         log.info("Поиск предметов по тексту '{}' для пользователя ID {}", text, userId);
         return itemService.searchAvailableItems(userId, text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    @ResponseStatus(HttpStatus.OK)
+    public CommentDto addComment(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable("itemId") Long itemId,
+            @Valid @RequestBody CommentDto commentDto) {
+        log.info("Добавление комментария к предмету ID {} пользователем ID {}", itemId, userId);
+        return itemService.addComment(userId, itemId, commentDto);
     }
 }
