@@ -112,16 +112,14 @@ public class ItemServiceImpl implements ItemService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByEndDesc(
-                        item.getId(), BookingStatus.APPROVED, now)
+        bookingRepository.findFirstByItemIdAndStatusAndStartBeforeAndEndAfterOrderByEndDesc(
+                        item.getId(), BookingStatus.APPROVED, now, now)
                 .ifPresent(booking -> {
-                    if (booking.getEnd().isAfter(now)) {
-                        ItemDto.BookingInfo lastBooking = ItemDto.BookingInfo.builder()
-                                .id(booking.getId())
-                                .bookerId(booking.getBooker().getId())
-                                .build();
-                        itemDto.setLastBooking(lastBooking);
-                    }
+                    ItemDto.BookingInfo lastBooking = ItemDto.BookingInfo.builder()
+                            .id(booking.getId())
+                            .bookerId(booking.getBooker().getId())
+                            .build();
+                    itemDto.setLastBooking(lastBooking);
                 });
 
         bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
