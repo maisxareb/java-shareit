@@ -20,5 +20,6 @@ public interface UserMapper {
 
     UserDto toUserDto(User user);
 
+    @Mapping(target = "id", ignore = true)
     void updateUserFromRequest(UpdateUserRequest request, @MappingTarget User user);
 }
