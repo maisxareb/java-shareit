@@ -89,11 +89,11 @@
 						<threshold>High</threshold>
 					</configuration>
 					<executions>
-						<execion>
+						<execution>
 							<goals>
 								<goal>check</goal>
 							</goals>
-						</execion>
+						</execution>
 					</executions>
 				</plugin>
 				<plugin>
