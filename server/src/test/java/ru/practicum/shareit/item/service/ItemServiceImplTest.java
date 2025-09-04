@@ -286,6 +286,16 @@ class ItemServiceImplTest {
         User author = User.builder().id(userId).name("Автор").build();
         Item item = Item.builder().id(itemId).owner(2L).build();
 
+        // Создаем завершенное бронирование
+        Booking completedBooking = Booking.builder()
+                .id(1L)
+                .booker(author)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(LocalDateTime.now().minusDays(2))
+                .end(LocalDateTime.now().minusDays(1)) // Завершено (в прошлом)
+                .build();
+
         Comment savedComment = Comment.builder()
                 .id(1L)
                 .text("Отличная дрель!")
@@ -296,9 +306,10 @@ class ItemServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(author));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
-                eq(userId), eq(itemId), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
-                .thenReturn(true);
+
+        when(bookingRepository.findByBookerIdAndItemIdAndStatusOrderByStartDesc(
+                eq(userId), eq(itemId), eq(BookingStatus.APPROVED)))
+                .thenReturn(List.of(completedBooking)); // Возвращаем список с завершенным бронированием
 
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
 
@@ -309,7 +320,6 @@ class ItemServiceImplTest {
         assertEquals("Отличная дрель!", result.getText());
         assertEquals("Автор", result.getAuthorName());
         verify(commentRepository).save(any(Comment.class));
-
         verify(commentMapper, never()).toCommentDto(any());
     }
 
@@ -324,8 +334,10 @@ class ItemServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(author));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
-                any(), any(), any(), any(LocalDateTime.class))).thenReturn(false);
+
+        when(bookingRepository.findByBookerIdAndItemIdAndStatusOrderByStartDesc(
+                userId, itemId, BookingStatus.APPROVED))
+                .thenReturn(List.of());
 
         assertThrows(ValidationException.class, () -> itemService.addComment(userId, itemId, commentDto));
     }
