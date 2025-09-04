@@ -22,8 +22,8 @@ public enum BookingState {
     public static BookingState fromString(String state) {
         try {
             return BookingState.valueOf(state.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return BookingState.ALL; // или бросить исключение
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return BookingState.ALL;
         }
     }
 }

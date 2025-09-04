@@ -1,15 +1,20 @@
 package ru.practicum.shareit.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping(path = "/requests")
@@ -49,5 +54,18 @@ public class ItemRequestController {
             @PathVariable Long requestId) {
         log.info("Получение запроса ID {} пользователем ID {}", requestId, userId);
         return itemRequestClient.getRequestById(userId, requestId);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, String> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String fieldName = violation.getPropertyPath().toString();
+            String errorMessage = violation.getMessage();
+            errors.put("error", "Validation failed for field: " + fieldName + ". " + errorMessage);
+        });
+        return errors;
     }
 }
