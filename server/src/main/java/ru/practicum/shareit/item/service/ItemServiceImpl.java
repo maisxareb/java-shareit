@@ -117,11 +117,19 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        boolean hasBooked = bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
-                userId, itemId, BookingStatus.APPROVED, LocalDateTime.now());
+        List<Booking> userBookings = bookingRepository.findByBookerIdAndItemIdAndStatusOrderByStartDesc(
+                userId, itemId, BookingStatus.APPROVED);
 
-        if (!hasBooked) {
-            throw new ValidationException("User has not booked this item");
+        boolean hasCompletedBooking = false;
+        for (Booking booking : userBookings) {
+            if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                hasCompletedBooking = true;
+                break;
+            }
+        }
+
+        if (!hasCompletedBooking) {
+            throw new ValidationException("User has not completed any approved booking for this item");
         }
 
         Comment comment = new Comment();
