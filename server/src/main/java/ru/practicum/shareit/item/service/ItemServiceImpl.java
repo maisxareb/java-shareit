@@ -120,13 +120,8 @@ public class ItemServiceImpl implements ItemService {
         List<Booking> userBookings = bookingRepository.findByBookerIdAndItemIdAndStatusOrderByStartDesc(
                 userId, itemId, BookingStatus.APPROVED);
 
-        boolean hasCompletedBooking = false;
-        for (Booking booking : userBookings) {
-            if (booking.getEnd().isBefore(LocalDateTime.now())) {
-                hasCompletedBooking = true;
-                break;
-            }
-        }
+        boolean hasCompletedBooking = userBookings.stream()
+                .anyMatch(booking -> booking.getEnd().isBefore(LocalDateTime.now()));
 
         if (!hasCompletedBooking) {
             throw new ValidationException("User has not completed any approved booking for this item");

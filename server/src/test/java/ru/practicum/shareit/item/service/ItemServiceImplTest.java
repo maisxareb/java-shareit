@@ -162,7 +162,7 @@ class ItemServiceImplTest {
         Long itemId = 1L;
         UpdateItemRequest updateItemRequest = new UpdateItemRequest();
 
-        Item item = Item.builder().id(itemId).owner(2L).build(); // Владелец с ID 2
+        Item item = Item.builder().id(itemId).owner(2L).build();
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
@@ -184,7 +184,7 @@ class ItemServiceImplTest {
         ItemDto itemDto = ItemDto.builder().id(itemId).build();
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto); // Добавлен мок для toItemDto
+        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
         when(bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByEndDesc(
                 eq(itemId), eq(BookingStatus.APPROVED), any(LocalDateTime.class))).thenReturn(Optional.of(lastBooking));
         when(bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
@@ -208,7 +208,7 @@ class ItemServiceImplTest {
         ItemDto itemDto = ItemDto.builder().id(itemId).build();
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto); // Добавлен мок для toItemDto
+        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
 
         ItemDto result = itemService.getItemById(userId, itemId);
 
@@ -286,14 +286,13 @@ class ItemServiceImplTest {
         User author = User.builder().id(userId).name("Автор").build();
         Item item = Item.builder().id(itemId).owner(2L).build();
 
-        // Создаем завершенное бронирование
         Booking completedBooking = Booking.builder()
                 .id(1L)
                 .booker(author)
                 .item(item)
                 .status(BookingStatus.APPROVED)
                 .start(LocalDateTime.now().minusDays(2))
-                .end(LocalDateTime.now().minusDays(1)) // Завершено (в прошлом)
+                .end(LocalDateTime.now().minusDays(1))
                 .build();
 
         Comment savedComment = Comment.builder()
@@ -309,7 +308,7 @@ class ItemServiceImplTest {
 
         when(bookingRepository.findByBookerIdAndItemIdAndStatusOrderByStartDesc(
                 eq(userId), eq(itemId), eq(BookingStatus.APPROVED)))
-                .thenReturn(List.of(completedBooking)); // Возвращаем список с завершенным бронированием
+                .thenReturn(List.of(completedBooking));
 
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
 
